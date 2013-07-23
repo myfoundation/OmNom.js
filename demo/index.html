@@ -29,45 +29,24 @@
   grammar.setTheme("ace/theme/solarized_dark");
   grammar.getSession().setMode("ace/mode/ebnf");
 
-  var input = ace.edit("input");
-  input.setTheme("ace/theme/solarized_dark");
-  input.getSession().setMode("ace/mode/ebnf");
+  var input = ace.edit("input")
+  input.setTheme("ace/theme/solarized_dark")
+  input.getSession().setMode("ace/mode/ebnf")
 
-  grammar.setValue('##################\n###   Tokens   ###\n##################\n\nsymbol  = "[[:alpha:]][\\w-]*\\??|=|\\+|-|\\*|/|<|>"\nstring  = "\\"([^\\\\\\"]*(\\\\.)?)*\\""\nint     = "\\d+"\nfloat   = "\\d*\\.\\d+|\\d+\\.\\d*"\nbool    = "#[tf]"\nquote   = "\\\'"\nop      = "\\("\ncp      = "\\)"\n        = "[ \\t\\n]+"\n\n\n###################\n###   Symbols   ###\n###################\n\nINPUT       = EXPRESSION *\nEXPRESSION  = ATOM | LIST | quote EXPRESSION\nATOM        = symbol | string | int | float | bool\nLIST        = op EXPRESSION * cp')
+  grammar.setValue('##################\n###   Tokens   ###\n##################\n\nsymbol  = "[[:alpha:]][\\w-]*\\??|=|\\+|-|\\*|/|<|>"\nstring  = "\\"([^\\\\\\"]*(\\\\.)?)*\\""\nint     = "\\d+"\nfloat   = "\\d*\\.\\d+|\\d+\\.\\d*"\nbool    = "#[tf]"\nquote   = "\\\'"\nop      = "\\("\ncp      = "\\)"\n  = "[ \\t\\n]+"\n\n\n###################\n###   Symbols   ###\n###################\n\nINPUT       = EXPRESSION*\nEXPRESSION  = ATOM | LIST | quote EXPRESSION\nATOM        = symbol | string | int | float | bool\nLIST        = $op EXPRESSION* $cp')
   grammar.clearSelection()
 
   input.setValue("(car (cdr (cdr '(1 2 3))))")
+  input.setValue("(123 456)")
   input.clearSelection()
 </script>
 
 <script>
-  var gparser = new BasicParser(32,
-    {
-      symbol:   "\\w+",
-      string:   '"([^\\\\"]*(\\\\.)*)*"',
-      eq:       "=",
-      star:     "\\*",
-      pipe:     "\\|",
-      op:       "\\(",
-      cp:       "\\)",
-      nl:       "\n",
-      $space:   "[ \t]+",
-      $comment: "#[^\n]*"
-    },
-    {
-      input:      "$nl* tokens expansions",
-      tokens:     "token*",
-      token:      "symbol eq string $nl $nl* | eq string $nl $nl*",
-      expansions: "expansion*",
-      expansion:  "symbol eq option option2* $nl $nl*",
-      option:     "option3*",
-      option2:    "pipe option",
-      option3:    "symbol | symbol star"
-    }
-  )
+  var gparser = new Parser(32, grammar.getValue()+"\n")
 
   var parse = function () {
-    var tree = gparser.parse(grammar.getValue()+"\n")
+    gparser = new Parser(32, grammar.getValue()+"\n")
+    var tree = gparser.parse(input.getValue()+"\n")
     var node = d3.select("#tree ul li")
     node.html("<a></a><ul></ul>")
     renderTree(tree, node)

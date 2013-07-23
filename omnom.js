@@ -13,22 +13,22 @@ This code is released under the public domain.
 */
 
 
-var ttree = function (token) {
-  return {token: token}
-}
-
-
-var stree = function (symbol, rule) {
-  return {
-    symbol:   symbol,
-    rule:     rule,
-    children: []
-  }
-}
-
-
 var BasicParser = function (maxDepth, tokenDefs, symbolDefs) {
   var self = this
+
+
+  var ttree = function (token) {
+    return {token: token}
+  }
+
+
+  var stree = function (symbol, rule) {
+    return {
+      symbol:   symbol,
+      rule:     rule,
+      children: []
+    }
+  }
 
 
   var tokenTypes = _.object(_.map(tokenDefs, function (pattern, t) {
@@ -47,15 +47,17 @@ var BasicParser = function (maxDepth, tokenDefs, symbolDefs) {
 
   self.parse = function (input) {
     var tokens = tokenize(input)
-    if (tokens.error)
+    console.log(tokens)
+    if (tokens.error != undefined)
       return {error:{
         type:  "Token",
         start: tokens.error,
         end:   tokens.error
       }}
+    console.log(tokens)
 
     var table = makeTable(tokens)
-    var result = parseSymbol(table, tokens, "input", 0, maxDepth)
+    var result = parseSymbol(table, tokens, "INPUT", 0, maxDepth)
     if (result.length == undefined || result.length < tokens.length)
       return {error:{
         type:  "Parse",
@@ -147,6 +149,7 @@ var BasicParser = function (maxDepth, tokenDefs, symbolDefs) {
       }
 
       else {
+        console.log(curSymbol)
         undefined.x
       }
 
@@ -232,4 +235,85 @@ var BasicParser = function (maxDepth, tokenDefs, symbolDefs) {
 
     return nice
   }
+}
+
+
+var grammarParser = new BasicParser(32,
+  {
+    lsymbol:  "[a-zA-Z0-9]+\\*?",
+    rsymbol:  "(@|\\$)?[a-zA-Z0-9]+\\*?",
+    string:   '"([^\\\\"]*(\\\\.)*)*"',
+    eq:       "=",
+    pipe:     "\\|",
+    op:       "\\(",
+    cp:       "\\)",
+    nl:       "\n",
+    $space:   "[ \t]+",
+    $comment: "#[^\n]*",
+  },
+  {
+    INPUT:    "$nl* TOKENS SYMBOLS",
+    TOKENS:   "TOKEN*",
+    TOKEN:    "lsymbol $eq string $nl $nl* | $eq string $nl $nl*",
+    SYMBOLS:  "SYMBOL*",
+    SYMBOL:   "lsymbol $eq OPTIONS $nl $nl*",
+    OPTIONS:  "OPTION @OPTIONS2*",
+    OPTIONS2: "$pipe OPTION",
+    OPTION:   "@OPTION2*",
+    OPTION2:  "lsymbol | rsymbol",
+  }
+)
+
+
+var Parser = function (maxDepth, grammar) {
+  var self = this
+
+  var g = grammarParser.parse(grammar)
+  if (g.error) return
+
+  var tokenCount = 0
+  var tokenDefs =
+    _.object(
+      _.map(g.children[0].children, function (token) {
+        var name    = "$" + tokenCount++
+        var pattern = token.children[0].token.token
+        if (token.children.length == 2) {
+          name    = token.children[0].token.token
+          pattern = token.children[1].token.token
+        }
+        pattern = pattern.substring(1, pattern.length-1)
+        return [name, pattern]
+      })
+    )
+
+  var symbolDefs = _.object(
+    _.map(g.children[1].children, function (expansion) {
+      var name    = expansion.children[0].token.token
+      var options = _.reduce(
+        _.map(expansion.children[1].children, function (option) {
+          return _.map(option.children, function (symbol) {
+            return symbol.token.token
+          })
+        }),
+        function (memo, value) {
+          var expansion = _.reduce(value, function (memo, value) {
+            return (memo == "" ? "" : memo + " ") + value
+          }, "")
+          return (memo == "" ? "" : memo + " | ") + expansion
+        },
+        ""
+      )
+      return [name, options]
+    })
+  )
+
+  // console.log(JSON.stringify(tokenDefs), JSON.stringify(symbolDefs))
+  console.log(tokenDefs, symbolDefs)
+  var parser = new BasicParser(maxDepth, tokenDefs, symbolDefs)
+  self.parse = parser.parse
+}
+
+
+if (typeof exports !== 'undefined') {
+  exports.Parser = Parser
 }
