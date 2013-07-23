@@ -1,3 +1,18 @@
+/*
+   ____            _   _                   _     
+  / __ \          | \ | |                 (_)    
+ | |  | |_ __ ___ |  \| | ___  _ __ ___    _ ___ 
+ | |  | | '_ ` _ \| . ` |/ _ \| '_ ` _ \  | / __|
+ | |__| | | | | | | |\  | (_) | | | | | |_| \__ \
+  \____/|_| |_| |_|_| \_|\___/|_| |_| |_(_) |___/
+                                         _/ |    
+                                        |__/     
+          An (Almost) Universal Parser
+
+This code is released under the public domain.
+*/
+
+
 var ttree = function (token) {
   return {token: token}
 }
@@ -12,7 +27,7 @@ var stree = function (symbol, rule) {
 }
 
 
-BasicParser = function (tokenDefs, symbolDefs, nameDefs, maxDepth) {
+var BasicParser = function (maxDepth, tokenDefs, symbolDefs) {
   var self = this
 
 
@@ -73,7 +88,7 @@ BasicParser = function (tokenDefs, symbolDefs, nameDefs, maxDepth) {
       if (maxLength == 0)
         return {error:index}
 
-      if (maxType.indexOf("$") != 0)
+      if (maxType.charAt(0) != "$")
         tokens.push({type:maxType, start:index, end:index+maxLength})
 
       index += maxLength
@@ -99,8 +114,6 @@ BasicParser = function (tokenDefs, symbolDefs, nameDefs, maxDepth) {
 
 
   var parseSymbol = function (table, tokens, curSymbol, curToken, depth) {
-    if (curSymbol == "eq" && curToken == 49) undefined.x
-
     if (curToken >= tokens.length) return {error:tokens.length-1}
     if (depth >= self.maxDepth) return {error:tokens.length-1}
 
@@ -152,12 +165,16 @@ BasicParser = function (tokenDefs, symbolDefs, nameDefs, maxDepth) {
 
     var expansion = symbolTypes[symbol][rule]
     for (var i = 0; i < expansion.length; ++i) {
-      var curSymbol  = expansion[i]
-      var nextSymbol = expansion[i+1]
+      var curSymbol = expansion[i]
+      var meta      = curSymbol.charAt(0) == "@"
+      var silent    = curSymbol.charAt(0) == "$"
+      var repeat    = curSymbol.charAt(curSymbol.length-1) == "*"
 
-      if (curSymbol == "*") continue
+      if (meta)   curSymbol = curSymbol.substring(1)
+      if (silent) curSymbol = curSymbol.substring(1)
+      if (repeat) curSymbol = curSymbol.substring(0, curSymbol.length-1)
 
-      if (nextSymbol == "*") {
+      if (repeat) {
         while (true) {
           var curDepth = c.length == 0 ? depth-1 : maxDepth
           var result   = parseSymbol(table, tokens, curSymbol, token+c.length, curDepth)
@@ -166,7 +183,10 @@ BasicParser = function (tokenDefs, symbolDefs, nameDefs, maxDepth) {
           if (!result.length) break
 
           c.length += result.length
-          c.tree.children.push(result.tree)
+          if (meta && result.tree.children)
+            _.each(result.tree.children, function (child) { c.tree.children.push(child) })
+          if (!meta && !silent)
+            c.tree.children.push(result.tree)
         }
       }
 
@@ -182,7 +202,10 @@ BasicParser = function (tokenDefs, symbolDefs, nameDefs, maxDepth) {
         }
 
         c.length += result.length
-        c.tree.children.push(result.tree)
+          if (meta && result.tree.children)
+            _.each(result.tree.children, function (child) { c.tree.children.push(child) })
+          if (!meta && !silent)
+            c.tree.children.push(result.tree)
       }
     }
 

@@ -1,0 +1,50 @@
+html, body {
+  margin: 0;
+  height: 100%;
+
+  background: rgb(0,43,54);
+  color: white;
+  font-family: Helvetica, sans-serif;
+}
+
+
+#editors {
+  display: table;
+  height: 50%;
+  width: 100%;
+}
+
+
+#editors > div {
+  display: table-row;
+  height: 100%;
+}
+
+
+#grammar, #input {
+  display: table-cell;
+  height: 100%;
+  width: 50%;
+}
+
+
+#input {
+  width: 50%;
+}
+
+
+#tree {
+  height: 50%;
+  width: 100%;
+
+  overflow: scroll;
+}
+
+
+#tree ul {
+}
+
+
+#tree a.token {
+  color: red;
+}
