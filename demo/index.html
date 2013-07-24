@@ -36,7 +36,7 @@
     input.setTheme("ace/theme/solarized_dark")
     input.getSession().setMode("ace/mode/ebnf")
 
-    grammar.setValue('##################\n###   Tokens   ###\n##################\n\nsymbol  = "[a-zA-Z][\\w-]*\\??|=|\\+|-|\\*|/|<|>"\nstring  = "\\"([^\\\\\\"]*(\\\\.)?)*\\""\nint     = "\\d+"\nfloat   = "\\d*\\.\\d+|\\d+\\.\\d*"\nbool    = "#[tf]"\nquote   = "\\\'"\nop      = "\\("\ncp      = "\\)"\n        = "[ \\t\\n]+"\n\n\n###################\n###   Symbols   ###\n###################\n\nINPUT       = EXPRESSION*\nEXPRESSION  = ATOM | LIST | quote EXPRESSION\nATOM        = symbol | string | int | float | bool\nLIST        = $op EXPRESSION* $cp')
+    grammar.setValue('##################\n###   Tokens   ###\n##################\n\nsymbol  = "[a-zA-Z][\\w-]*\\??|=|\\+|-|\\*|/|<|>"\nstring  = "\\"([^\\\\\\"]*(\\\\.)?)*\\""\nint     = "\\d+"\nfloat   = "\\d*\\.\\d+|\\d+\\.\\d*"\nbool    = "#[tf]"\nquote   = "\\\'"\nop      = "\\("\ncp      = "\\)"\n        $ "[ \\t\\n]+"\n        ! "\\d+\\w+"\n\n\n###################\n###   Symbols   ###\n###################\n\nINPUT       = EXPRESSION*\nEXPRESSION  = ATOM | LIST | quote EXPRESSION\nATOM        = symbol | string | int | float | bool\nLIST        = $op EXPRESSION* $cp')
     grammar.clearSelection()
 
     input.setValue("(car (cdr (cdr '(1 2 3))))")
@@ -61,10 +61,8 @@
     var parse = function () {
       grammar.getSession().clearAnnotations()
 
-      // var parser = Parser(32, grammar.getValue()+"\n")
       try { var parser = Parser(32, grammar.getValue()+"\n") }
       catch (e) {
-        console.log("WTF", e)
         var pos = getPos(e.start, grammar.getValue()+"\n")
         grammar.getSession().setAnnotations([{
           type: "error",

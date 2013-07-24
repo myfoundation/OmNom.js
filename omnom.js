@@ -95,6 +95,9 @@ var BasicParser = function (maxDepth, tokenDefs, symbolDefs) {
       if (maxLength == 0)
         return {error:index}
 
+      if (maxType.charAt(0) == "!")
+        return {error:index}
+
       if (maxType.charAt(0) != "$")
         tokens.push({type:maxType, start:index, end:index+maxLength})
 
@@ -254,6 +257,8 @@ var grammarParser = BasicParser(32,
     rsymbol:  "(@|\\$)?[a-zA-Z0-9]+\\*?",
     string:   '"([^\\\\"\n]|\\\\.)*"',
     eq:       "=",
+    dollar:   "\\$",
+    bang:     "!",
     pipe:     "\\|",
     op:       "\\(",
     cp:       "\\)",
@@ -264,7 +269,7 @@ var grammarParser = BasicParser(32,
   {
     INPUT:    "$nl* TOKENS SYMBOLS",
     TOKENS:   "TOKEN*",
-    TOKEN:    "lsymbol $eq string $nl $nl* | $eq string $nl $nl*",
+    TOKEN:    "lsymbol $eq string $nl $nl* | dollar string $nl $nl* | bang string $nl $nl*",
     SYMBOLS:  "SYMBOL*",
     SYMBOL:   "lsymbol $eq OPTIONS $nl $nl*",
     OPTIONS:  "OPTION @OPTIONS2*",
@@ -283,12 +288,10 @@ var Parser = function (maxDepth, grammar) {
 
   var tokenCount = 0
   var tokenDefs = _.object(_.map(g.children[0].children, function (token) {
-    var name    = "$" + tokenCount++
-    var pattern = token.children[0].token.token
-    if (token.children.length == 2) {
-      name    = token.children[0].token.token
-      pattern = token.children[1].token.token
-    }
+    var name    = token.children[0].token.token
+    var pattern = token.children[1].token.token
+    if (token.children[0].type == "dollar") name = "$" + tokenCount++
+    if (token.children[0].type == "bang")   name = "!" + tokenCount++
     pattern = pattern.substring(1, pattern.length-1)
     try { RegExp(pattern) }
     catch (e) { throw {
