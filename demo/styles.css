@@ -17,19 +17,11 @@ html, body {
 
 #editors > div {
   display: table-row;
-  height: 100%;
 }
 
 
 #grammar, #input {
   display: table-cell;
-  height: 100%;
-  width: 50%;
-}
-
-
-#input {
-  width: 50%;
 }
 
 

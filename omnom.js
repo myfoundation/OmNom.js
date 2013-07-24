@@ -6,15 +6,14 @@
  | |__| | | | | | | |\  | (_) | | | | | |_| \__ \
   \____/|_| |_| |_|_| \_|\___/|_| |_| |_(_) |___/
                                          _/ |    
-                                        |__/     
-          An (Almost) Universal Parser
+                A Jank Ass-Parser       |__/     
 
 This code is released under the public domain.
 */
 
 
 var BasicParser = function (maxDepth, tokenDefs, symbolDefs) {
-  var self = this
+  var self = {}
 
 
   var ttree = function (token) {
@@ -26,18 +25,19 @@ var BasicParser = function (maxDepth, tokenDefs, symbolDefs) {
     return {
       symbol:   symbol,
       rule:     rule,
-      children: []
+      children: [],
     }
   }
 
-
   var tokenTypes = _.object(_.map(tokenDefs, function (pattern, t) {
-    return [t, new RegExp(pattern, "mg")]
+    try { var re = RegExp(pattern, "mg") }
+    catch (e) { throw {type:"Token Specification", token:t} }
+    return [t, re]
   }))
 
 
   var symbolTypes = _.object(_.map(symbolDefs, function (rules, s) {
-    rules = rules.split(/\s*\|\s*/)
+    rules = rules.split(/\s+\|\s+/)
     return [s, _.map(rules, function (symbols) {
       symbols = symbols.split(/\s+/)
       return symbols
@@ -47,23 +47,28 @@ var BasicParser = function (maxDepth, tokenDefs, symbolDefs) {
 
   self.parse = function (input) {
     var tokens = tokenize(input)
-    console.log(tokens)
     if (tokens.error != undefined)
       return {error:{
-        type:  "Token",
+        type:  "Tokenization",
         start: tokens.error,
         end:   tokens.error
       }}
-    console.log(tokens)
 
     var table = makeTable(tokens)
     var result = parseSymbol(table, tokens, "INPUT", 0, maxDepth)
     if (result.length == undefined || result.length < tokens.length)
-      return {error:{
-        type:  "Parse",
-        start: tokens[result.error+1].start,
-        end:   tokens[result.error+1].end
-      }}
+      if (tokens.length == 0)
+        return {error:{
+          type:  "Parse",
+          start: 0,
+          end:   0,
+        }}
+      else
+        return {error:{
+          type:  "Parse",
+          start: tokens[result.error].start,
+          end:   tokens[result.error].end,
+        }}
 
     var tree = niceTree(input, tokens, result.tree)
     return tree
@@ -223,7 +228,9 @@ var BasicParser = function (maxDepth, tokenDefs, symbolDefs) {
       var token = tokens[nice.token]
       nice.token = {
         token: input.substring(token.start, token.end),
-        type:  token.type
+        type:  token.type,
+        start: token.start,
+        end:   token.end,
       }
     }
 
@@ -235,14 +242,17 @@ var BasicParser = function (maxDepth, tokenDefs, symbolDefs) {
 
     return nice
   }
+
+
+  return self
 }
 
 
-var grammarParser = new BasicParser(32,
+var grammarParser = BasicParser(32,
   {
     lsymbol:  "[a-zA-Z0-9]+\\*?",
     rsymbol:  "(@|\\$)?[a-zA-Z0-9]+\\*?",
-    string:   '"([^\\\\"]*(\\\\.)*)*"',
+    string:   '"([^\\\\"\n]|\\\\.)*"',
     eq:       "=",
     pipe:     "\\|",
     op:       "\\(",
@@ -266,51 +276,52 @@ var grammarParser = new BasicParser(32,
 
 
 var Parser = function (maxDepth, grammar) {
-  var self = this
+  var self = {}
 
   var g = grammarParser.parse(grammar)
-  if (g.error) return
+  if (g.error) throw g.error
 
   var tokenCount = 0
-  var tokenDefs =
-    _.object(
-      _.map(g.children[0].children, function (token) {
-        var name    = "$" + tokenCount++
-        var pattern = token.children[0].token.token
-        if (token.children.length == 2) {
-          name    = token.children[0].token.token
-          pattern = token.children[1].token.token
-        }
-        pattern = pattern.substring(1, pattern.length-1)
-        return [name, pattern]
-      })
+  var tokenDefs = _.object(_.map(g.children[0].children, function (token) {
+    var name    = "$" + tokenCount++
+    var pattern = token.children[0].token.token
+    if (token.children.length == 2) {
+      name    = token.children[0].token.token
+      pattern = token.children[1].token.token
+    }
+    pattern = pattern.substring(1, pattern.length-1)
+    try { RegExp(pattern) }
+    catch (e) { throw {
+      type:  "Grammatical",
+      start: token.children[1].token.start,
+      end:   token.children[1].token.end,
+    }}
+    return [name, pattern]
+  }))
+
+  var symbolDefs = _.object(_.map(g.children[1].children, function (expansion) {
+    var name    = expansion.children[0].token.token
+    var options = _.reduce(
+      _.map(expansion.children[1].children, function (option) {
+        return _.map(option.children, function (symbol) {
+          return symbol.token.token
+        })
+      }),
+      function (memo, value) {
+        var expansion = _.reduce(value, function (memo, value) {
+          return (memo == "" ? "" : memo + " ") + value
+        }, "")
+        return (memo == "" ? "" : memo + " | ") + expansion
+      },
+      ""
     )
+    return [name, options]
+  }))
 
-  var symbolDefs = _.object(
-    _.map(g.children[1].children, function (expansion) {
-      var name    = expansion.children[0].token.token
-      var options = _.reduce(
-        _.map(expansion.children[1].children, function (option) {
-          return _.map(option.children, function (symbol) {
-            return symbol.token.token
-          })
-        }),
-        function (memo, value) {
-          var expansion = _.reduce(value, function (memo, value) {
-            return (memo == "" ? "" : memo + " ") + value
-          }, "")
-          return (memo == "" ? "" : memo + " | ") + expansion
-        },
-        ""
-      )
-      return [name, options]
-    })
-  )
-
-  // console.log(JSON.stringify(tokenDefs), JSON.stringify(symbolDefs))
-  console.log(tokenDefs, symbolDefs)
-  var parser = new BasicParser(maxDepth, tokenDefs, symbolDefs)
+  var parser = BasicParser(maxDepth, tokenDefs, symbolDefs)
   self.parse = parser.parse
+
+  return self
 }
 
 
