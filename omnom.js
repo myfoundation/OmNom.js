@@ -179,29 +179,15 @@ var BasicParser = function (maxDepth, tokenDefs, symbolDefs) {
       var curSymbol = expansion[i]
       var meta      = curSymbol.charAt(0) == "@"
       var silent    = curSymbol.charAt(0) == "$"
-      var repeat    = curSymbol.charAt(curSymbol.length-1) == "*"
+      var nonEmpty  = curSymbol.charAt(curSymbol.length-1) != "*"
+      var repeat    = curSymbol.charAt(curSymbol.length-1) == "*" ||
+                      curSymbol.charAt(curSymbol.length-1) == "+"
 
       if (meta)   curSymbol = curSymbol.substring(1)
       if (silent) curSymbol = curSymbol.substring(1)
       if (repeat) curSymbol = curSymbol.substring(0, curSymbol.length-1)
 
-      if (repeat) {
-        while (true) {
-          var curDepth = c.length == 0 ? depth-1 : maxDepth
-          var result   = parseSymbol(table, tokens, curSymbol, token+c.length, curDepth)
-
-          c.error = Math.max(c.error, result.error)
-          if (!result.length) break
-
-          c.length += result.length
-          if (meta && result.tree.children)
-            _.each(result.tree.children, function (child) { c.tree.children.push(child) })
-          if (!meta && !silent)
-            c.tree.children.push(result.tree)
-        }
-      }
-
-      else {
+      if (nonEmpty) {
         var curDepth = c.length == 0 ? depth-1 : maxDepth
         var result = parseSymbol(table, tokens, curSymbol, token+c.length, curDepth)
         
@@ -217,6 +203,22 @@ var BasicParser = function (maxDepth, tokenDefs, symbolDefs) {
             _.each(result.tree.children, function (child) { c.tree.children.push(child) })
           if (!meta && !silent)
             c.tree.children.push(result.tree)
+      }
+
+      if (repeat) {
+        while (true) {
+          var curDepth = c.length == 0 ? depth-1 : maxDepth
+          var result   = parseSymbol(table, tokens, curSymbol, token+c.length, curDepth)
+
+          c.error = Math.max(c.error, result.error)
+          if (!result.length) break
+
+          c.length += result.length
+          if (meta && result.tree.children)
+            _.each(result.tree.children, function (child) { c.tree.children.push(child) })
+          if (!meta && !silent)
+            c.tree.children.push(result.tree)
+        }
       }
     }
 
@@ -269,9 +271,9 @@ var grammarParser = BasicParser(32,
   {
     INPUT:    "$nl* TOKENS SYMBOLS",
     TOKENS:   "TOKEN*",
-    TOKEN:    "lsymbol $eq string $nl $nl* | dollar string $nl $nl* | bang string $nl $nl*",
+    TOKEN:    "lsymbol $eq string $nl+ | dollar string $nl+ | bang string $nl+",
     SYMBOLS:  "SYMBOL*",
-    SYMBOL:   "lsymbol $eq OPTIONS $nl $nl*",
+    SYMBOL:   "lsymbol $eq OPTIONS $nl+",
     OPTIONS:  "OPTION @OPTIONS2*",
     OPTIONS2: "$pipe OPTION",
     OPTION:   "@OPTION2*",
