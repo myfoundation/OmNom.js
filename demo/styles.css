@@ -3,47 +3,33 @@ html, body {
   height: 100%;
 
   background: rgb(0,43,54);
-  color: #93A1A1;
   font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'source-code-pro', monospace;
   font-size: 12px;
 }
 
-
-#editors {
-  display: table;
-  height: 50%;
-  width: 100%;
+#input, #grammar {
+  position: absolute;
+  right: 0;
+  height: 48%;
+  width: 50%;
 }
-
-
-#editors > div {
-  display: table-row;
-}
-
-
-#grammar, #input {
-  display: table-cell;
-}
-
+#input { top: 0; }
+#grammar { bottom: 0; }
 
 #tree {
-  height: 50%;
-  width: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 50%;
+  height: 100%;
 
   overflow: scroll;
-  text-align: center;
+  text-align: top;
 }
-
-
-#tree div {
-  display: inline-block;
-}
-
 
 #tree.error {
   opacity: 0.5;
 }
-
 
 #tree ul {
   list-style: none;
@@ -51,6 +37,9 @@ html, body {
   text-align: left;
 }
 
+#tree a {
+  color: #93A1A1;
+}
 
 #tree a.token {
   color: rgb(211, 54, 130);
