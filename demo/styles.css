@@ -33,6 +33,11 @@ html, body {
 }
 
 
+#tree.error {
+  opacity: 0.5;
+}
+
+
 #tree ul {
 }
 

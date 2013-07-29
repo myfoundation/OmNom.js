@@ -46,7 +46,7 @@ This code is released under the public domain.
 
       var table = makeTable(tokens)
       var result = parseSymbol(table, tokens, "INPUT", 0, 0)
-      if (result.length == undefined || result.length < tokens.length)
+      if (result.length == undefined || result.length < tokens.length-1)
         if (tokens.length == 0)
           return {error:{
             type:  "Parse",
@@ -93,6 +93,7 @@ This code is released under the public domain.
         index += maxLength
       }
 
+      tokens.push({type:"end of input", start:input.length, end:input.length})
       return tokens
     }
 
@@ -134,15 +135,15 @@ This code is released under the public domain.
 
         if (tokenTypes[curSymbol]) {
           if (tokens[curToken].type == curSymbol) {
-            setCell(table, curSymbol, curToken, {length:1, error:-1, tree:ttree(curToken)})
+            setCell(table, curSymbol, curToken, {length:1, error:0, tree:ttree(curToken)})
           }
           else {
-            setCell(table, curSymbol, curToken, {error:curToken-1})
+            setCell(table, curSymbol, curToken, {error:curToken})
           }
         }
 
         else if (symbolTypes[curSymbol]) {
-          var c = {length:-1, error:curToken-1}
+          var c = {length:-1, error:curToken}
 
           for (var r = 0; r < symbolTypes[curSymbol].length; ++r) {
             var result = parseRule(table, tokens, curSymbol, curToken, r, depth)
@@ -160,8 +161,7 @@ This code is released under the public domain.
         }
 
         else {
-          console.log(curSymbol)
-          undefined.x
+          throw "Much badness at " + curSymbol + ", " + curToken
         }
 
       }
@@ -173,7 +173,7 @@ This code is released under the public domain.
     var parseRule = function (table, tokens, symbol, token, rule, depth) {
       var c = {
         length: 0,
-        error:  token-1,
+        error:  token,
         tree:   stree(symbol, rule)
       }
 
@@ -182,9 +182,12 @@ This code is released under the public domain.
         var curSymbol = expansion[i]
         var meta      = curSymbol.charAt(0) == "@"
         var silent    = curSymbol.charAt(0) == "$"
-        var nonEmpty  = curSymbol.charAt(curSymbol.length-1) != "*"
+        var nonEmpty  = curSymbol.charAt(curSymbol.length-1) != "*" &&
+                        curSymbol.charAt(curSymbol.length-1) != "?"
         var repeat    = curSymbol.charAt(curSymbol.length-1) == "*" ||
-                        curSymbol.charAt(curSymbol.length-1) == "+"
+                        curSymbol.charAt(curSymbol.length-1) == "+" ||
+                        curSymbol.charAt(curSymbol.length-1) == "?"
+        var onlyOnce  = curSymbol.charAt(curSymbol.length-1) == "?"
 
         if (meta)   curSymbol = curSymbol.substring(1)
         if (silent) curSymbol = curSymbol.substring(1)
@@ -221,6 +224,8 @@ This code is released under the public domain.
               _.each(result.tree.children, function (child) { c.tree.children.push(child) })
             if (!meta && !silent)
               c.tree.children.push(result.tree)
+
+            if (onlyOnce) break
           }
         }
       }
@@ -248,7 +253,7 @@ This code is released under the public domain.
   var grammarParser = BasicParser(32,
     {
       lsymbol:  "[a-zA-Z0-9]+\\*?",
-      rsymbol:  "(@|\\$)?[a-zA-Z0-9]+\\*?",
+      rsymbol:  "(@|\\$)?[a-zA-Z0-9]+(\\*|\\?|)",
       string:   '"([^\\\\"\n]|\\\\.)*"',
       eq:       "=",
       dollar:   "\\$",
