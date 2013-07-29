@@ -73,7 +73,7 @@
         return
       }
 
-      var tree = parser.parse(input.getValue()+"\n")
+      var tree = parser(input.getValue()+"\n")
       var node = d3.select("#tree ul li")
       node.html("<a></a><ul></ul>")
       renderTree(tree, node)
@@ -81,8 +81,8 @@
 
     var renderTree = function (tree, node) {
       node.select("a")
-        .attr("class", tree.token ? "token" : "symbol")
-        .html(tree.token ? nice(tree.token.token) : tree.symbol)
+        .attr("class", tree.text ? "token" : "symbol")
+        .html(tree.text ? nice(tree.text) : tree.symbol)
 
       var children = node.select("ul").selectAll("li")
         .data(tree.children||[])
