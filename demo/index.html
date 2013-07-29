@@ -18,10 +18,16 @@
         <div id="input"></div>
       </div>
     </div>
+
     <div id="tree">
-      <ul>
-        <li></li>
-      </ul>
+      <div>
+        <ul>
+          <li>
+            <a class="symbol">INPUT</a>
+            <ul></ul>
+          </li>
+        </ul>
+      </div>
     </div>
 
     <a href="https://github.com/calder/omnom"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_orange_ff7600.png" alt="Fork me on GitHub"></a>
@@ -37,7 +43,7 @@
     input.setTheme("ace/theme/solarized_dark")
     input.getSession().setMode("ace/mode/ebnf")
 
-    grammar.setValue('##################\n###   Tokens   ###\n##################\n\nsymbol  = "[a-zA-Z][\\w-]*\\??|=|\\+|-|\\*|/|<|>"\nstring  = "\\"([^\\\\\\"]*(\\\\.)?)*\\""\nint     = "\\d+"\nfloat   = "\\d*\\.\\d+|\\d+\\.\\d*"\nbool    = "#[tf]"\nquote   = "\\\'"\nop      = "\\("\ncp      = "\\)"\n        $ "[ \\t\\n]+"\n        ! "\\d+\\w+"\n\n\n###################\n###   Symbols   ###\n###################\n\nINPUT       = EXPRESSION*\nEXPRESSION  = ATOM | LIST | quote EXPRESSION\nATOM        = symbol | string | int | float | bool\nLIST        = $op EXPRESSION* $cp')
+    grammar.setValue('##################\n###   Tokens   ###\n##################\n\nsymbol  = "[a-zA-Z][\\w-]*\\??|=|\\+|-|\\*|/|<|>"\nstring  = "\\"([^\\\\\\"]*(\\\\.)?)*\\""\nint     = "\\d+"\nfloat   = "\\d*\\.\\d+|\\d+\\.\\d*"\nbool    = "#[tf]"\nquote   = "\\\'"\nop      = "\\("\ncp      = "\\)"\n        $ "[ \\t\\n]+"\n        ! "\\d+\\w+"\n\n\n###################\n###   Symbols   ###\n###################\n\nINPUT       = EXPRESSION*\nEXPRESSION  = ATOM | LIST | LITERAL\nLITERAL     = $quote @EXPRESSION\nATOM        = symbol | string | int | float | bool\nLIST        = $op EXPRESSION* $cp')
     grammar.clearSelection()
 
     input.setValue("(car (cdr (cdr '(1 2 3))))")
@@ -96,30 +102,25 @@
         return
       }
 
+      console.log("\n\n\n")
       d3.select("#tree").classed("error", false)
-      var node = d3.select("#tree ul li")
-      node.html("<a></a><ul></ul>")
-      renderTree(tree, node)
+      d3.select("#tree ul li ul").html("")
+      renderChildren(tree.children, d3.select("#tree ul li ul").selectAll("li"))
     }
 
-    var renderTree = function (tree, node) {
-      node.select("a")
-        .attr("class", tree.text ? "token" : "symbol")
-        .html(tree.text ? nice(tree.text) : tree.symbol)
+    var renderChildren = function (children, nodes) {
+      var nodes = nodes.data(children)
+      var enter = nodes.enter().append("li")
+      var exit  = nodes.exit().remove()
 
-      var children = node.select("ul").selectAll("li")
-        .data(tree.children||[])
+      enter.append("a")
+        .attr("class", function (c) { return c.text ? "token" : "symbol" })
+        .html(function (c) { return c.text ? nice(c.text) : c.symbol })
 
-      var newChildren = children.enter().append("li")
-      newChildren.append("a")
-      newChildren.append("ul")
+      enter.append("ul")
 
-      children
-        .each(function (d) {
-          renderTree(d, d3.select(this))
-        })
-      
-      children.exit().remove()
+      nodes
+        .each(function (c) { renderChildren(c.children || [], d3.select(this).select("ul").selectAll("li")) })
     }
 
     var nice = function (s) {

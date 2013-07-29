@@ -3,8 +3,9 @@ html, body {
   height: 100%;
 
   background: rgb(0,43,54);
-  color: white;
-  font-family: Helvetica, sans-serif;
+  color: #93A1A1;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'source-code-pro', monospace;
+  font-size: 12px;
 }
 
 
@@ -30,6 +31,12 @@ html, body {
   width: 100%;
 
   overflow: scroll;
+  text-align: center;
+}
+
+
+#tree div {
+  display: inline-block;
 }
 
 
@@ -39,9 +46,12 @@ html, body {
 
 
 #tree ul {
+  list-style: none;
+  padding-left: 1.5em;
+  text-align: left;
 }
 
 
 #tree a.token {
-  color: red;
+  color: rgb(211, 54, 130);
 }
