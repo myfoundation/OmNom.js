@@ -28,11 +28,11 @@
     input.setTheme("ace/theme/solarized_dark")
     input.getSession().setMode("ace/mode/ebnf")
 
-    grammar.setValue('##################\n###   Tokens   ###\n##################\n\nsymbol  = "[a-zA-Z][\\w-]*\\??|=|\\+|-|\\*|/|<|>"\nstring  = "\\"([^\\\\\\"]*(\\\\.)?)*\\""\nint     = "\\d+"\nfloat   = "\\d*\\.\\d+|\\d+\\.\\d*"\nbool    = "#[tf]"\nquote   = "\\\'"\nop      = "\\("\ncp      = "\\)"\n        $ "[ \\t\\n]+"\n        ! "\\d+\\w+"\n\n\n###################\n###   Symbols   ###\n###################\n\nINPUT       = EXPRESSION*\nEXPRESSION  = ATOM | LIST | LITERAL\nLITERAL     = $quote @EXPRESSION\nATOM        = symbol | string | int | float | bool\nLIST        = $op EXPRESSION* $cp')
+    grammar.setValue('##################\n###   Tokens   ###\n##################\n\nsymbol  = "[a-zA-Z][\\w-]*\\??|=|\\+|-|\\*|/|<|>"\nstring  = "\\"([^\\\\\\"]*(\\\\.)?)*\\""\nint     = "\\d+"\nfloat   = "\\d*\\.\\d+|\\d+\\.\\d*"\nbool    = "#[tf]"\nquote   = "\\\'"\nop      = "\\("\ncp      = "\\)"\n        $ ";[^\\n]*"\n        $ "[ \\t\\n]+"\n        ! "\\d+\\w+"\n\n\n###################\n###   Symbols   ###\n###################\n\nINPUT       = EXPRESSION*\nEXPRESSION  = ATOM | LIST | LITERAL\nLITERAL     = $quote @EXPRESSION\nATOM        = symbol | string | int | float | bool\nLIST        = $op EXPRESSION* $cp')
     grammar.clearSelection()
 
     input.setValue("(car (cdr (cdr '(1 2 3))))")
-    input.setValue("(123 456)")
+    input.setValue(";   ____            _   _                   _     \n;  / __ \\          | \\ | |                 (_)    \n; | |  | |_ __ ___ |  \\| | ___  _ __ ___    _ ___ \n; | |  | | '_ ` _ \\| . ` |/ _ \\| '_ ` _ \\  | / __|\n; | |__| | | | | | | |\\  | (_) | | | | | |_| \\__ \\\n;  \\____/|_| |_| |_|_| \\_|\\___/|_| |_| |_(_) |___/\n;                                         _/ |    \n;                A Jank Ass-Parser       |__/     \n; \n; The input BELOW is parsed by the grammar FARTHER\n; BELOW to generate the tree on the LEFT.\n; \n; WAT.\n\n\n(define divides?\n  (lambda (x y)\n    (= (modulo y x) 0)))\n\n(define divisors\n  (lambda (x)\n    (filter\n      (lambda (y) (divides? y x))\n      (range 2 (+ (sqrt x) 1)))))\n\n(define prime?\n  (lambda (x)\n    (empty? (divisors x))))\n\n(filter prime? (range 2 100))")
     input.clearSelection()
   </script>
 

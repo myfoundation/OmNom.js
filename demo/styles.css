@@ -13,13 +13,11 @@ html, body {
   height: 48%;
   width: 50%;
 }
-#input { top: 0; }
+#input   { top: 0; }
 #grammar { bottom: 0; }
 
 #tree {
   position: absolute;
-  top: 0;
-  left: 0;
   width: 50%;
   height: 100%;
 
@@ -38,9 +36,9 @@ html, body {
 }
 
 #tree a {
-  color: #93A1A1;
+  color: #657B83;
 }
 
 #tree a.token {
-  color: rgb(211, 54, 130);
+  color: #FF7600;
 }
