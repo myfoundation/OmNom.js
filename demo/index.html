@@ -87,7 +87,6 @@
         return
       }
 
-      console.log("\n\n\n")
       d3.select("#tree").classed("error", false)
       d3.select("#tree").html("<ul><li><a class='symbol'>INPUT</a><ul></ul></li></ul>")
       renderChildren(tree.children, d3.select("#tree ul li ul").selectAll("li"))

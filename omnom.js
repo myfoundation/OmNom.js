@@ -206,7 +206,9 @@ This code is released under the public domain.
 
           c.length += result.length
             if (meta && result.tree.children)
-              _.each(result.tree.children, function (child) { c.tree.children.push(child) })
+              _.each(result.tree.children, function (child) {
+                c.tree.children.push(child)
+              })
             if (!meta && !silent)
               c.tree.children.push(result.tree)
         }
@@ -286,7 +288,6 @@ This code is released under the public domain.
 
     var tokenCount = 0
     var tokenDefs = _.object(_.map(g.children[0].children, function (token) {
-      console.log(token)
       var name    = token.children[0].text
       var pattern = token.children[1].text
       if (token.children[0].token.type == "dollar") name = "$" + tokenCount++
@@ -302,10 +303,10 @@ This code is released under the public domain.
     }))
 
     var symbolDefs = _.object(_.map(g.children[1].children, function (expansion) {
-      var name    = expansion.children[0].text
-      var options = _.reduce(
-        _.map(expansion.children[1].children, function (option) {
-          return _.map(option.children, function (symbol) {
+      var name  = expansion.children[0].text
+      var rules = _.reduce(
+        _.map(expansion.children[1].children, function (rule) {
+          return _.map(rule.children, function (symbol) {
             return symbol.text
           })
         }),
@@ -317,19 +318,31 @@ This code is released under the public domain.
         },
         ""
       )
-      return [name, options]
+      return [name, rules]
     }))
 
-    console.log(tokenDefs, symbolDefs)
+    _.each(g.children[1].children, function (expansion) {
+      _.each(expansion.children[1].children, function (rule) {
+        _.each(rule.children, function (symbol) {
+          var name = symbol.text.replace(/\$|@|\*|\+|\?/, "")
+          if (tokenDefs[name] == undefined && symbolDefs[name] == undefined)
+            throw {
+              type: "Unkown Symbol",
+              start: symbol.token.start,
+              end:   symbol.token.end,
+            }
+        })
+      })
+    })
 
     return BasicParser(maxDepth, tokenDefs, symbolDefs)
   }
 
 
-  if (typeof exports !== "undefined") {
-    this = exports
-  }
-  this.Parser = Parser
+  var root = this
+  if (typeof exports !== "undefined") root = exports
+  root.BasicParser = BasicParser
+  root.Parser = Parser
 
 
 }).call(this)
