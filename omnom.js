@@ -16,7 +16,7 @@ This code is released under the public domain.
   "use strict"
 
 
-  var BasicParser = function (maxDepth, tokenDefs, symbolDefs) {
+  var Parser = function (maxDepth, tokenDefs, symbolDefs) {
 
 
     var tokenTypes = _.object(_.map(tokenDefs, function (pattern, t) {
@@ -117,28 +117,18 @@ This code is released under the public domain.
     }
 
 
-    var cell = function (table, symbol, token) {
-      return table[token][symbol]
-    }
-
-
-    var setCell = function (table, symbol, token, cell) {
-      table[token][symbol] = cell
-    }
-
-
     var parseSymbol = function (table, tokens, curSymbol, curToken, depth) {
       if (curToken >= tokens.length) return {error:tokens.length-1}
       if (depth    >= maxDepth)      return {error:tokens.length-1}
 
-      if (!cell(table, curSymbol, curToken)) {
+      if (!table[curToken][curSymbol]) {
 
         if (tokenTypes[curSymbol]) {
           if (tokens[curToken].type == curSymbol) {
-            setCell(table, curSymbol, curToken, {length:1, error:0, tree:ttree(curToken)})
+            table[curToken][curSymbol] = {length:1, error:0, tree:ttree(curToken)}
           }
           else {
-            setCell(table, curSymbol, curToken, {error:curToken})
+            table[curToken][curSymbol] = {error:curToken}
           }
         }
 
@@ -157,7 +147,7 @@ This code is released under the public domain.
           }
 
           if (c.length == -1) delete c.length
-          setCell(table, curSymbol, curToken, c)
+          table[curToken][curSymbol] = c
         }
 
         else {
@@ -166,7 +156,7 @@ This code is released under the public domain.
 
       }
 
-      return cell(table, curSymbol, curToken)
+      return table[curToken][curSymbol]
     }
 
 
@@ -252,7 +242,7 @@ This code is released under the public domain.
   }
 
 
-  var grammarParser = BasicParser(32,
+  var bnfParser = Parser(32,
     {
       lsymbol:  "[a-zA-Z0-9]+\\*?",
       rsymbol:  "(@|\\$)?[a-zA-Z0-9]+(\\?|\\*|\\+|)",
@@ -281,9 +271,9 @@ This code is released under the public domain.
   )
 
 
-  var Parser = function (maxDepth, grammar) {
+  var BNFParser = function (maxDepth, grammar) {
 
-    var g = grammarParser(grammar)
+    var g = bnfParser(grammar)
     if (g.error) throw g.error
 
     var tokenCount = 0
@@ -335,14 +325,14 @@ This code is released under the public domain.
       })
     })
 
-    return BasicParser(maxDepth, tokenDefs, symbolDefs)
+    return Parser(maxDepth, tokenDefs, symbolDefs)
   }
 
 
   var root = this
   if (typeof exports !== "undefined") root = exports
-  root.BasicParser = BasicParser
   root.Parser = Parser
+  root.BNFParser = BNFParser
 
 
 }).call(this)
