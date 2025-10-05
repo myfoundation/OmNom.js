@@ -17,13 +17,17 @@
   </body>
 
   <script>
+	var LOG = console.log
+  
     var grammar = ace.edit("grammar")
     grammar.setTheme("ace/theme/solarized_dark")
     grammar.getSession().setMode("ace/mode/text")
+	grammar.getSession().setNewLineMode("unix")		// GET TEXT FROM EDITOR WITH \n AT END OF LINE
 
     var input = ace.edit("input")
     input.setTheme("ace/theme/solarized_dark")
     input.getSession().setMode("ace/mode/text")
+	input.getSession().setNewLineMode("unix")
 
     grammar.setValue('##################\n###   Tokens   ###\n##################\n\nsymbol  = "[a-zA-Z][\\w-]*\\??|=|\\+|-|\\*|/|<|>"\nstring  = "\\"([^\\\\\\"]*(\\\\.)?)*\\""\nint     = "\\d+"\nfloat   = "\\d*\\.\\d+|\\d+\\.\\d*"\nbool    = "#[tf]"\nquote   = "\\\'"\nop      = "\\("\ncp      = "\\)"\n        $ ";[^\\n]*"\n        $ "[ \\t\\n]+"\n        ! "\\d+\\w+"\n\n\n###################\n###   Symbols   ###\n###################\n\nINPUT       = EXPRESSION*\nEXPRESSION  = ATOM | LIST | LITERAL\nLITERAL     = $quote @EXPRESSION\nATOM        = symbol | string | int | float | bool\nLIST        = $op EXPRESSION* $cp')
     grammar.clearSelection()
@@ -51,7 +55,7 @@
 
     var updateGrammar = function () {
       grammar.getSession().clearAnnotations()
-
+	  
 	try { parser = BNFParser(32, grammar.getValue()+"\n") }
       catch (e) {
         d3.select("#tree").classed("error", true)
