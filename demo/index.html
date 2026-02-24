@@ -18,18 +18,18 @@
 
   <script>
 	var LOG = console.log
-  
+
     var grammar = ace.edit("grammar")
     grammar.setTheme("ace/theme/solarized_dark")
     grammar.getSession().setMode("ace/mode/text")
-	grammar.getSession().setNewLineMode("unix")		// GET TEXT FROM EDITOR WITH \n AT END OF LINE
+	// grammar.getSession().setNewLineMode("unix")		// GET TEXT FROM EDITOR WITH \n AT END OF LINE
 
     var input = ace.edit("input")
     input.setTheme("ace/theme/solarized_dark")
     input.getSession().setMode("ace/mode/text")
-	input.getSession().setNewLineMode("unix")
+//	input.getSession().setNewLineMode("unix")
 
-    grammar.setValue('##################\n###   Tokens   ###\n##################\n\nsymbol  = "[a-zA-Z][\\w-]*\\??|=|\\+|-|\\*|/|<|>"\nstring  = "\\"([^\\\\\\"]*(\\\\.)?)*\\""\nint     = "\\d+"\nfloat   = "\\d*\\.\\d+|\\d+\\.\\d*"\nbool    = "#[tf]"\nquote   = "\\\'"\nop      = "\\("\ncp      = "\\)"\n        $ ";[^\\n]*"\n        $ "[ \\t\\n]+"\n        ! "\\d+\\w+"\n\n\n###################\n###   Symbols   ###\n###################\n\nINPUT       = EXPRESSION*\nEXPRESSION  = ATOM | LIST | LITERAL\nLITERAL     = $quote @EXPRESSION\nATOM        = symbol | string | int | float | bool\nLIST        = $op EXPRESSION* $cp')
+    grammar.setValue('##################\n###    HELP    ###\n##################\n# Warn: Last line of Grammar must be \\n or comment\n#\n# BNF-like rules:\n#\n# * - 0 or more\n# + - 1 or more\n# ? - optional (1 or nothing)\n# $ - silent, exlude from AST (comments, whitespaces)\n# ! - deprecated in correct expression of grammar. Throw error if found (for fast detect bad tokens, f.e. 123abc deprecated word in C/C++ )\n# @ - Lisp Unquote-Splicing (meta logic), if @VALUE* the list of AST nodes, push list elements to current AST node. JavaScript analog [1, ...VALUE, 4]\n# INPUT - parser entry point\n\n##################\n###   Tokens   ###\n##################\n\nsymbol  = "[a-zA-Z][\\w-]*\\??|=|\\+|-|\\*|/|<|>"\nstring  = "\\"([^\\\\\\"]*(\\\\.)?)*\\""\nint     = "\\d+"\nfloat   = "\\d*\\.\\d+|\\d+\\.\\d*"\nbool    = "#[tf]"\nquote   = "\\\'"\nop      = "\\("\ncp      = "\\)"\n        $ ";[^\\n]*"\n        $ "[ \\t\\n]+"\n        ! "\\d+[a-zA-Z]+"\n\n\n###################\n###   Symbols   ###\n###################\n\nINPUT       = EXPRESSION*\nEXPRESSION  = ATOM | LIST | LITERAL\nLITERAL     = $quote @EXPRESSION\nATOM        = symbol | string | int | float | bool\nLIST        = $op EXPRESSION* $cp\n')
     grammar.clearSelection()
 
     input.setValue("(car (cdr (cdr '(1 2 3))))")
@@ -55,11 +55,11 @@
 
     var updateGrammar = function () {
       grammar.getSession().clearAnnotations()
-	  
-	try { parser = BNFParser(32, grammar.getValue()+"\n") }
+
+	try { parser = BNFParser(32, grammar.getValue()) }
       catch (e) {
         d3.select("#tree").classed("error", true)
-        var pos = getPos(e.start, grammar.getValue()+"\n")
+        var pos = getPos(e.start, grammar.getValue())
         grammar.getSession().setAnnotations([{
           type: "error",
           row:  pos.row,
@@ -76,10 +76,10 @@
 
       input.getSession().clearAnnotations()
 
-      var tree = parser(input.getValue()+"\n")
+      var tree = parser(input.getValue())
       if (tree.error) {
         d3.select("#tree").classed("error", true)
-        var pos = getPos(tree.error.start, input.getValue()+"\n")
+        var pos = getPos(tree.error.start, input.getValue())
         input.getSession().setAnnotations([{
           type: "error",
           row:  pos.row,
