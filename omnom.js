@@ -1,14 +1,82 @@
 /*
-   ____            _   _                   _     
-  / __ \          | \ | |                 (_)    
- | |  | |_ __ ___ |  \| | ___  _ __ ___    _ ___ 
+   ____            _   _                   _
+  / __ \          | \ | |                 (_)
+ | |  | |_ __ ___ |  \| | ___  _ __ ___    _ ___
  | |  | | '_ ` _ \| . ` |/ _ \| '_ ` _ \  | / __|
  | |__| | | | | | | |\  | (_) | | | | | |_| \__ \
   \____/|_| |_| |_|_| \_|\___/|_| |_| |_(_) |___/
-                                         _/ |    
-                A Jank Ass-Parser       |__/     
+                                         _/ |
+                A Jank Ass-Parser       |__/
 
 This code is released under the public domain.
+
+##################
+###    HELP    ###
+##################
+# Warn: Last line of Grammar must be \n or comment
+#
+# BNF-like rules:
+#
+# * - 0 or more
+# + - 1 or more
+# ? - optional (1 or nothing)
+# @ - Lisp Unquote-Splicing (meta logic), if @VALUE the list of AST nodes, push list elements to current AST node. JavaScript analog [1, ...VALUE, 4]
+# $ - silent, exlude from AST (comments, whitespaces)
+# ! - deprecated in correct expression of grammar. Throw error if found (for fast detect bad tokens, f.e. 123abc deprecated word in C/C++ )
+# INPUT - parser entry point
+
+Example.
+
+##################
+###  Gammar    ###
+##################
+
+##################
+###   Tokens   ###
+##################
+
+symbol  = "[a-zA-Z][\w-]*\??|=|\+|-|\*|/|<|>"
+string  = "\"([^\\\"]*(\\.)?)*\""
+int     = "\d+"
+float   = "\d*\.\d+|\d+\.\d*"
+bool    = "#[tf]"
+quote   = "\'"
+op      = "\("
+cp      = "\)"
+        $ ";[^\n]*"
+        $ "[ \t\n]+"
+        ! "\d+[a-zA-Z]+"
+
+###################
+###   Symbols   ###
+###################
+
+INPUT       = EXPRESSION*
+EXPRESSION  = ATOM | LIST | LITERAL
+LITERAL     = $quote @EXPRESSION
+ATOM        = symbol | string | int | float | bool
+LIST        = $op EXPRESSION* $cp
+
+##################
+### Parse text ###
+##################
+
+(define divides?
+  (lambda (x y)
+    (= (modulo y x) 0)))
+
+(define divisors
+  (lambda (x)
+    (filter
+      (lambda (y) (divides? y x))
+      (range 2 (+ (sqrt x) 1)))))
+
+(define prime?
+  (lambda (x)
+    (empty? (divisors x))))
+
+(filter prime? (range 2 100))
+
 */
 
 
@@ -186,7 +254,7 @@ This code is released under the public domain.
         if (nonEmpty) {
           var curDepth = c.length == 0 ? depth+1 : 0
           var result = parseSymbol(table, tokens, curSymbol, token+c.length, curDepth)
-          
+
           c.error = Math.max(c.error, result.error)
           if (result.length == undefined) {
             delete c.length
@@ -253,7 +321,7 @@ This code is released under the public domain.
       pipe:     "\\|",
       op:       "\\(",
       cp:       "\\)",
-      nl:       "\n",
+      nl:       "\r\n|\n",
       $space:   "[ \t]+",
       $comment: "#[^\n]*",
     },
