@@ -1,0 +1,80 @@
+//------------------------------------------
+// OMNOM JSON GRAMMAR
+//------------------------------------------
+
+INPUT = element;
+
+element = $ws? value $ws?;
+
+value = object
+
+      | array
+      | string
+      | number
+
+      | "true"
+      | "false"
+      | "null";
+
+object = "{" (members)? "}";
+members = member ("," member)*;
+member = $ws? string $ws? ":" element;
+
+array = "\[" (elements)? "]";
+elements = element ("," element)*;
+
+string = "\"([^\"\\\x00-\x1F]|\\[\"\\/bfnrt]|\\u[0-9a-fA-F]{4})*\"";
+number = "-?(0|[1-9]\d*)(\.\d+)?([eE][+-]?\d+)?";
+
+// WHITESPACES
+ws = "[ \t\n\r]+";
+
+
+//------------------------------------------
+// JSON EXAMPLE
+//------------------------------------------
+
+{
+    "glossary": {
+        "title": "example glossary",
+		"GlossDiv": {
+            "title": "S",
+			"GlossList": {
+                "GlossEntry": {
+                    "ID": "SGML",
+					"SortAs": "SGML",
+					"GlossTerm": "Standard Generalized Markup Language",
+					"Acronym": "SGML",
+					"Abbrev": "ISO 8879:1986",
+					"GlossDef": {
+                        "para": "A meta-markup language, used to create markup languages such as DocBook.",
+						"GlossSeeAlso": ["GML", "XML",
+{
+    "glossary": {
+        "title": "example glossary",
+		"GlossDiv": {
+            "title": "S",
+			"GlossList": {
+                "GlossEntry": {
+                    "ID": "SGML",
+					"SortAs": "SGML",
+					"GlossTerm": "Standard Generalized Markup Language",
+					"Acronym": "SGML",
+					"Abbrev": "ISO 8879:1986",
+					"GlossDef": {
+                        "para": "A meta-markup language, used to create markup languages such as DocBook.",
+						"GlossSeeAlso": ["GML", "XML"]
+                    },
+					"GlossSee": "markup"
+                }
+            }
+        }
+    }
+}]
+                    },
+					"GlossSee": "markup"
+                }
+            }
+        }
+    }
+}

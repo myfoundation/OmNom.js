@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--
+/*
+ * Copyright (C) 2024 MasterMentor
+ *
+ * This library is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as
+ * published by the Free Software Foundation; either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library.  If not, see <https://www.gnu.org>.
+ */
+// -->
+
+<head>
+    <script src="../src/underscore.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../src/omnom.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../src/omnom_transpiler.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../src/omnom_integrity_tests.js" type="text/javascript" charset="utf-8"></script>
+    <script src="calculator-bnf-ebnf.js" type="text/javascript" charset="utf-8"></script>
+    <title>Om Nom</title>
+</head>
+
+<body onload=main()>
+  <script>
+        var LOG = function() { console.log.apply(null, arguments); };
+        var LEN = function(x) { return x.length; }
+        var SELECT = function(x) { return document.querySelector(x); } // querySelectorAll()[0]
+
+        var HTML =  function(id, text)
+        {
+            var is_set = LEN(arguments) == 2;
+            var el = SELECT('[id='+id+']');
+            if(is_set) el.innerHTML = text;
+            else return el.innerHTML;
+        };
+        var VALUE =  function(id, text)
+        {
+            var is_set = LEN(arguments) == 2;
+            var el = SELECT('[id='+id+']');
+            if(is_set) el.value = text;	// Input Text value Property
+            else return el.value;
+        };
+
+        var calc_run =  function()
+        {
+            var code_AST = calculator.calculator2_parser(VALUE('expression'));
+            if (code_AST.error)
+            {
+                HTML('result', "ERR: bad expression");
+            }
+            else
+            {
+                var ast = calculator.drawAST(code_AST);
+                HTML('result', calculator.execAST(code_AST));
+                HTML('AST', _.escape(ast));
+            }
+        }
+
+        function main()
+        {
+            HTML('grammar1', _.escape(calculator.calculator_bnf));
+            HTML('grammar2', _.escape(calculator.calculator2_ebnf));
+            HTML('grammar3', _.escape(calculator.calculator2_omnom));
+
+            VALUE('expression', "(1+(2-4))*(4-5+sin(6+7))");
+
+            SELECT('[id=run]').onclick = calc_run;
+            calc_run();
+        }
+
+  </script>
+
+<pre><div>
+<h2>OmNom transpiler example</h2>
+        For more See <a target="_blank" href='../README.md'>[README.md]</a>
+        <h2>1. Math Expression Calculator (+,-,*,/,sin, cos)</h2>
+        <button id="run">Run</button> Expression / Result = [<span id="result"></span>]<br>
+        <textarea id="expression" rows="5" cols="50"></textarea>
+        <h2>2. Expression AST</h2>
+        <div id="AST"></div>
+    </div>
+    <h2>3. Calculator Grammar: BNF-&gt; transpiler -&gt; EBNF-&gt; transpiler -&gt; OMNOM</h2>
+<b>--------------------------BNF GRAMMAR-----------------------------------------</b>
+    <div id="grammar1"></div><b>--------------------------EBNF GRAMMAR----------------------------------------</b>
+    <div id="grammar2"></div><b>--------------------------OMNOM GRAMMAR---------------------------------------</b>
+    <div id="grammar3"></div><b>------------------------------------------------------------------------------</b>
+</pre>
+</body>
+</html>

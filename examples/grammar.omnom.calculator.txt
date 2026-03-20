@@ -1,0 +1,43 @@
+//------------------------------------------
+// OMNOM JSON GRAMMAR
+//------------------------------------------
+
+
+        $ "[ \t\r\n]+";
+
+number  = "\d+(\.\d+)?";
+func    = "sin|cos";
+op      = "\(";
+cp      = "\)";
+plus    = "\+";
+minus   = "-";
+mul     = "\*";
+div     = "/";
+
+
+// Входная точка
+INPUT       = EXPRESSION;
+
+// Низший приоритет: сложение и вычитание
+EXPRESSION  = TERM @EXPR_TAIL*;
+EXPR_TAIL   = (plus | minus) TERM;
+
+// Средний приоритет: умножение и деление
+TERM        = FACTOR @TERM_TAIL*;
+TERM_TAIL   = (mul | div) FACTOR;
+
+// Высший приоритет: функции, скобки, числа
+FACTOR      = FUNCTION | PRIMARY;
+FUNCTION    = func $op EXPRESSION $cp;
+PRIMARY     = $op EXPRESSION $cp | number;
+
+//------------------------------------------
+// EXAMPLE
+//------------------------------------------
+
+(1+(2-3))*(4-5+sin(6+7))
+
+
+
+
+

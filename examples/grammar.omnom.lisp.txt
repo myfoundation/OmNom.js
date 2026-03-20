@@ -1,0 +1,53 @@
+//------------------------------------------
+// OMNOM LISP
+//------------------------------------------
+
+
+// ##################
+// ###   Tokens   ###
+// ##################
+
+        $ ";[^\n]*";
+        $ "[ \t\r\n]+";
+        - "\d+[a-zA-Z]+";
+
+symbol  = "[a-zA-Z][\w-]*\??|=|\+|-|\*|/|<|>";
+string  = "\"([^\\\"]*(\\.)?)*\"";
+int     = "\d+";
+float   = "\d*\.\d+|\d+\.\d*";
+bool    = "#[tf]";
+quote   = "\'";
+op      = "\(";
+cp      = "\)";
+
+
+// ###################
+// ###   Symbols   ###
+// ###################
+
+INPUT       = EXPRESSION*;
+EXPRESSION  = ATOM | LIST | LITERAL;
+LITERAL     = $quote @EXPRESSION;
+ATOM        = symbol | string | int | float | bool;
+LIST        = $op EXPRESSION* $cp;
+
+//------------------------------------------
+// LISP CODE
+//------------------------------------------
+
+(define divides?
+  (lambda (x y)
+    (= (modulo y x) 0)))
+
+(define divisors
+  (lambda (x)
+    (filter
+      (lambda (y) (divides? y x))
+      (range 2 (+ (sqrt x) 1)))))
+
+(define prime?
+  (lambda (x)
+    (empty? (divisors x))))
+
+(filter prime? (range 2 100))
+

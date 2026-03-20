@@ -1,0 +1,93 @@
+//------------------------------------------
+// OMNOM BNF GRAMMAR
+//------------------------------------------
+
+
+// Тихие токены (пробелы и переносы строк)
+$ "[ \t\r\n]+";
+
+// Точка входа
+INPUT = rule* ;
+
+// Структура правила
+rule = lhs "::=" rhs ;
+rhs = list ("\|" list)* ;
+list = safe_term+ ;
+
+// Разрешение конфликта через Negative Lookahead (префиксный минус)
+// Если впереди next_rule, ветвь отсекается, и list завершает сборку.
+safe_term = terminal | -next_rule non_terminal ;
+next_rule = non_terminal "::=" ;
+
+// Базовые элементы
+lhs = non_terminal ;
+non_terminal = @"<" identifier @">" ;
+
+// Лексика (Терминалы)
+terminal = "\"[^\"]*\"" | "'[^']*'" ;
+identifier = "[a-zA-Z_][a-zA-Z0-9_]*" ;
+
+
+//------------------------------------------
+// BNF ENBF GRAMMAR
+//------------------------------------------
+
+<syntax> ::= <rule> | <syntax> <rule>
+<rule> ::= <identifier> "=" <expression> ";"
+
+<expression> ::= <term> | <expression> "|" <term>
+<term> ::= <exception> | <term> "," <exception>
+<exception> ::= <primary> | <primary> "-" <primary>
+
+<primary> ::= <identifier> 
+            | <terminal_string> 
+            | "(" <expression> ")" 
+            | "[" <expression> "]" 
+            | "{" <expression> "}"
+
+<identifier> ::= <letter> | <identifier> <letter> | <identifier> <digit> | <identifier> "_"
+
+<terminal_string> ::= "'" <single_quoted_chars> "'" | '"' <double_quoted_chars> '"'
+<single_quoted_chars> ::= <character> | <single_quoted_chars> <character>
+<double_quoted_chars> ::= <character> | <double_quoted_chars> <character>
+
+<letter> ::= "a" | "b" | "c" | "d" | "e" | "f" | "g" | "h" | "i" | "j" | "k" | "l" | "m" | "n" | "o" | "p" | "q" | "r" | "s" | "t" | "u" | "v" | "w" | "x" | "y" | "z" | "A" | "B" | "C" | "D" | "E" | "F" | "G" | "H" | "I" | "J" | "K" | "L" | "M" | "N" | "O" | "P" | "Q" | "R" | "S" | "T" | "U" | "V" | "W" | "X" | "Y" | "Z"
+<digit> ::= "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9"
+<character> ::= <letter> | <digit> | " " | "_" | "-" | "+" | "*" | "/" | "=" | "<" | ">" | "(" | ")" | "[" | "]" | "{" | "}" | ";" | "," | "." | "|" | "?" | "!" | "@" | "$" | "\" | "^" | "~" | "`" | ":" | "#" | "%" | "&"
+
+
+//------------------------------------------
+// BNF OMNOM GRAMMAR
+//------------------------------------------
+
+<omnom_grammar> ::= <rule> | <omnom_grammar> <rule>
+<rule> ::= <identifier> "=" <expression> ";"
+
+<expression> ::= <term> | <expression> "|" <term>
+<term> ::= <factor> | <term> <factor>
+
+<factor> ::= <prefix> <primary> <postfix> 
+           | <prefix> <primary> 
+           | <primary> <postfix> 
+           | <primary>
+
+<prefix> ::= "@" | "$" | "-"
+<postfix> ::= "*" | "+" | "?"
+
+<primary> ::= <identifier> 
+            | <terminal_string> 
+            | "(" <expression> ")"
+
+<identifier> ::= <letter> | <identifier> <letter> | <identifier> <digit> | <identifier> "_"
+
+<terminal_string> ::= '"' <regex_chars> '"'
+<regex_chars> ::= <character> | <regex_chars> <character>
+
+<letter> ::= "a" | "b" | "c" | "d" | "e" | "f" | "g" | "h" | "i" | "j" | "k" | "l" | "m" | "n" | "o" | "p" | "q" | "r" | "s" | "t" | "u" | "v" | "w" | "x" | "y" | "z" | "A" | "B" | "C" | "D" | "E" | "F" | "G" | "H" | "I" | "J" | "K" | "L" | "M" | "N" | "O" | "P" | "Q" | "R" | "S" | "T" | "U" | "V" | "W" | "X" | "Y" | "Z"
+<digit> ::= "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9"
+<character> ::= <letter> | <digit> | " " | "_" | "-" | "+" | "*" | "/" | "=" | "<" | ">" | "(" | ")" | "[" | "]" | "{" | "}" | ";" | "," | "." | "|" | "?" | "!" | "@" | "$" | "\" | "^" | "~" | "`" | ":" | "#" | "%" | "&" | "'"
+
+
+
+
+

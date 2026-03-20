@@ -1,0 +1,58 @@
+/**
+ * AST VISITOR ENGINE
+ * Принимает дерево и объект с функциями-обработчиками для каждого символа.
+ */
+var walkAST = function(node, handlers, context) {
+    // 1. Если это массив (список детей), обходим каждый элемент
+    if (_.isArray(node)) {
+        return _.map(node, function(child) { 
+            return walkAST(child, handlers, context); 
+        });
+    }
+
+    // 2. Ищем обработчик для конкретного символа (например, "ATOM", "LIST", "define")
+    var handler = handlers[node.symbol];
+
+    // 3. Если обработчик есть — вызываем его, передавая детей и контекст
+    if (handler) {
+        return handler(node.children, context, node);
+    }
+
+    // 4. Если обработчика нет, но есть дети — просто идем глубже (проксирование)
+    if (node.children && node.children.length > 0) {
+        return walkAST(node.children, handlers, context);
+    }
+
+    // 5. Базовый случай: возвращаем текст токена (терминал)
+    return node.text;
+};
+
+/**
+ * ПРИМЕР ИСПОЛЬЗОВАНИЯ ДЛЯ LISP
+ */
+var LispInterpreter = {
+    "INPUT": function(children, ctx) {
+        return _.map(children, function(c) { return walkAST(c, LispInterpreter, ctx); });
+    },
+    
+    "LIST": function(children, ctx) {
+        // Первый элемент списка в LISP — это обычно функция
+        var results = _.map(children, function(c) { return walkAST(c, LispInterpreter, ctx); });
+        var fn = results[0];
+        var args = results.slice(1);
+        
+        console.log("Executing function:", fn, "with args:", args);
+        return { fn: fn, args: args };
+    },
+
+    "ATOM": function(children) {
+        // Извлекаем значение (число, строку или символ)
+        var val = children[0].text;
+        if (!isNaN(val)) return Number(val);
+        return val;
+    }
+};
+
+// Запуск:
+// var result = walkAST(finalTree, LispInterpreter, {});
+

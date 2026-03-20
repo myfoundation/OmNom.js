@@ -1,0 +1,78 @@
+//------------------------------------------
+// OMNOM EBNF GRAMMAR
+//------------------------------------------
+
+
+// Игнорируемые токены (пробелы, переносы строк и комментарии EBNF)
+$ "[ \t\r\n]+";
+$ "\(\*.*?\*\)";
+
+// Точка входа
+INPUT       = rule* ;
+
+// Синтаксические правила
+rule        = identifier "=" expression ";" ;
+expression  = term ("\|" term)* ;
+term        = factor ("," factor)* ;
+factor      = primary ("-" primary)? ;
+primary     = identifier
+            | string
+            | "\[" expression "\]"
+            | "\{" expression "\}"
+            | "\(" expression "\)" ;
+
+// Лексические правила (Терминалы)
+identifier  = "[a-zA-Z_][a-zA-Z0-9_]*" ;
+string      = "\"[^\"]*\"" | "'[^']*'" ;
+
+
+//------------------------------------------
+// EBNF EBNF GRAMMAR
+//------------------------------------------
+
+
+
+grammar = { rule } ;
+rule = identifier , "=" , expression , ";" ;
+expression = term , { "|" , term } ;
+term = factor , { "," , factor } ;
+factor = primary , [ "-" , primary ] ;
+primary = identifier
+        | string
+        | "[" , expression , "]"
+        | "{" , expression , "}"
+        | "(" , expression , ")" ;
+
+identifier = letter , { letter | digit | "_" } ;
+string = '"' , { character } , '"' 
+       | "'" , { character } , "'" ;
+
+letter = "A" | "B" | "C" | "D" | "E" | "F" | "G" | "H" | "I" | "J" | "K" | "L" | "M" | "N" | "O" | "P" | "Q" | "R" | "S" | "T" | "U" | "V" | "W" | "X" | "Y" | "Z" | "a" | "b" | "c" | "d" | "e" | "f" | "g" | "h" | "i" | "j" | "k" | "l" | "m" | "n" | "o" | "p" | "q" | "r" | "s" | "t" | "u" | "v" | "w" | "x" | "y" | "z" ;
+digit = "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" ;
+
+
+//------------------------------------------
+// EBNF BNF GRAMMAR
+//------------------------------------------
+
+
+grammar = { rule } ;
+rule = lhs , "::=" , rhs ;
+rhs = list , { "|" , list } ;
+list = { term } ;
+
+(* Разрешение конфликта: термин - это терминал или безопасный нетерминал *)
+term = terminal | safe_non_terminal ;
+
+(* Безопасный нетерминал: любой нетерминал, КРОМЕ того, за которым следует ::= *)
+safe_non_terminal = non_terminal - next_rule ;
+next_rule = non_terminal , "::=" ;
+
+lhs = non_terminal ;
+non_terminal = "<" , identifier , ">" ;
+terminal = '"' , { character } , '"' | "'" , { character } , "'" ;
+
+identifier = letter , { letter | digit | "_" } ;
+letter = "A" | "B" | "C" | "D" | "E" | "F" | "G" | "H" | "I" | "J" | "K" | "L" | "M" | "N" | "O" | "P" | "Q" | "R" | "S" | "T" | "U" | "V" | "W" | "X" | "Y" | "Z" | "a" | "b" | "c" | "d" | "e" | "f" | "g" | "h" | "i" | "j" | "k" | "l" | "m" | "n" | "o" | "p" | "q" | "r" | "s" | "t" | "u" | "v" | "w" | "x" | "y" | "z" ;
+digit = "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" ;
+
