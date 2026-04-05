@@ -18,6 +18,9 @@
 /*
 Sources https://github.com/myfoundation/OmNom.js
 
+VERSION 2.0.01    12:08 05.04.2026
+-- Minor changes. Do code more compatible with C++ port
+
 VERSION 2.0    21:08 20.03.2026
 -- Added: groups ()
 -- Added: difference -
@@ -144,7 +147,7 @@ VERSION 1.0    2014
 
             c.error = Math.max(c.error, result.error);
 
-            if (result.length > c.length) {
+            if (_.isNumber(result.length) && (result.length > c.length)) {
               c.length = result.length;
               c.tree   = result.tree;
             }
