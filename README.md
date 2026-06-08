@@ -86,6 +86,14 @@ Try this in playgroung [demo/grammar_editor.html](demo/grammar_editor.html) and 
 // ###  Terminals ###
 // ##################
 
+// 1. WHITESPACES & EXCLUDES
+
+        $ ";[^\n]*";
+        $ "[ \t\r\n]+";
+        - "\d+[a-zA-Z]+";
+
+// 2. ANOTHER SYMBOLS
+
 symbol  = "[a-zA-Z][\w-]*\??|=|\+|-|\*|/|<|>";
 string  = "\"([^\\\"]*(\\.)?)*\"";
 int     = "\d+";
@@ -94,9 +102,6 @@ bool    = "#[tf]";
 quote   = "\'";
 op      = "\(";
 cp      = "\)";
-        $ ";[^\n]*";
-        $ "[ \t\r\n]+";
-        - "\d+[a-zA-Z]+";
 
 // ###################
 // ###    Rules    ###
